@@ -33,7 +33,7 @@ jobs:
         run: ./gradlew build
 
       - name: Upload build
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: latest-dev
           path: build/libs/coffee-1.0.0.jar
