@@ -202,60 +202,16 @@ public class AimAssist extends Module {
             double randomOffset = ThreadLocalRandom.current().nextDouble(aimRandomness.getValue().getMin(), aimRandomness.getValue().getMax());
             modifiedLaziness = laziness.getValue() + (randomOffset * 2);
         }
-        if (!aimInstant.getValue()) {
-            if(aimMode.getValue() == AimMode.Top)
-            {
-                Rotations.lookAtPositionSmooth(le.getPos().add(0, (le.getHeight() / 1.3d), 0), (float) (modifiedLaziness));
-            }
-            if(aimMode.getValue() == AimMode.Middle)
-            {
-                Rotations.lookAtPositionSmooth(le.getPos().add(0, (le.getHeight() / 2d), 0), (float) (modifiedLaziness));
-            }
-            else if(aimMode.getValue() == AimMode.Bottom)
-            {
-                Rotations.lookAtPositionSmooth(le.getPos().add(0, (le.getHeight() / 4d), 0), (float) (modifiedLaziness));
-            }
-            else if(aimMode.getValue() == AimMode.Custom)
-            {
-                Rotations.lookAtPositionSmooth(le.getPos().add(0, (le.getHeight() / 100) * aimHeight.getValue(), 0), (float) (modifiedLaziness));
-            }
-            else if (aimMode.getValue() == AimMode.Eyes)
-            {
-                Rotations.lookAtPositionSmooth(le.getEyePos(), (float) (modifiedLaziness));
-            }
-        } else {
-            if(aimMode.getValue() == AimMode.Top)
-            {
-                Rotation py = Rotations.getPitchYaw(le.getPos().add(0, (le.getHeight() / 1.3d), 0));
-                Objects.requireNonNull(CoffeeMain.client.player).setPitch(py.getPitch());
-                CoffeeMain.client.player.setYaw(py.getYaw());
-            }
-            else if(aimMode.getValue() == AimMode.Middle)
-            {
-                Rotation py = Rotations.getPitchYaw(le.getPos().add(0, (le.getHeight() / 2d), 0));
-                Objects.requireNonNull(CoffeeMain.client.player).setPitch(py.getPitch());
-                CoffeeMain.client.player.setYaw(py.getYaw());
-            }
-            else if(aimMode.getValue() == AimMode.Bottom)
-            {
-                Rotation py = Rotations.getPitchYaw(le.getPos().add(0, (le.getHeight() / 4d), 0));
-                Objects.requireNonNull(CoffeeMain.client.player).setPitch(py.getPitch());
-                CoffeeMain.client.player.setYaw(py.getYaw());
-            }
-            else if(aimMode.getValue() == AimMode.Custom)
-            {
-                Rotation py = Rotations.getPitchYaw(le.getPos().add(0, (le.getHeight() / 100) * aimHeight.getValue(), 0));
-                Objects.requireNonNull(CoffeeMain.client.player).setPitch(py.getPitch());
-                CoffeeMain.client.player.setYaw(py.getYaw());
-            }
-            else if (aimMode.getValue() == AimMode.Eyes)
-            {
-                Rotation py = Rotations.getPitchYaw(le.getEyePos());
-                Objects.requireNonNull(CoffeeMain.client.player).setPitch(py.getPitch());
-                CoffeeMain.client.player.setYaw(py.getYaw());
-            }
-        }
+        
+        if (!aimInstant.getValue()){
 
+            Rotations.lookAtPositionSmooth(le.getPos().add(0, (aimMode.getValue().getY(le, aimHeight.getValue())), 0), (float)(modifiedLaziness));
+
+        } else {
+            Rotation py = Rotations.getPitchYaw(le.getPos().add(0, (aimMode.getValue().getY(le, aimHeight.getValue())), 0));
+            Objects.requireNonNull(CoffeeMain.client.player).setPitch(py.getPitch());
+            CoffeeMain.client.player.setYaw(py.getYaw());
+        }
     }
 
     @Override
@@ -277,7 +233,31 @@ public class AimAssist extends Module {
     }
 
     public enum AimMode {
-        Top, Middle, Bottom, Custom, Eyes
+        Top(1.3d),
+        Middle(2d),
+        Bottom(4d),
+        Custom,
+        Eyes;
+    
+        private final Double div;
+    
+        AimMode() {
+            this.div = null;
+        }
+    
+        AimMode(double div) {
+            this.div = div;
+        }
+    
+        public double getY(Entity e, double customHeight) {
+            if (this == Eyes) {
+                return e.getEyePos().y - e.getPos().y;
+            }
+            if (this == Custom) {
+                return (e.getHeight() / 100d) * customHeight;
+            }
+            return e.getHeight() / div;
+        }
     }
 }
 
