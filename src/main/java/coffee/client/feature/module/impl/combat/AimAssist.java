@@ -70,8 +70,8 @@ public class AimAssist extends Module {
     final EnumSetting<PriorityMode> priority = this.config.create(new EnumSetting.Builder<>(PriorityMode.Distance).name("Priority")
         .description("What to prioritize when aiminig")
         .get());
-    final DoubleSetting laziness = this.config.create(new DoubleSetting.Builder(1).name("Laziness")
-        .description("How lazy to get when aiming")
+    final DoubleSetting aimStrength = this.config.create(new DoubleSetting.Builder(1).name("Aim Strength")
+        .description("The strength of the aim assist")
         .min(0.1)
         .max(100)
         .precision(1)
@@ -84,7 +84,7 @@ public class AimAssist extends Module {
         .get());
     RangeSetting.Range defaultValue = new RangeSetting.Range(1, 100);
     final RangeSetting aimRandomness = this.config.create(new RangeSetting.Builder(defaultValue).name("Randomness")
-        .description("How strongly to affect the speed when randomizing")
+        .description("How much random smoothing to add")
         .lowerMin(1)
         .lowerMax(100)
         .upperMin(1)
@@ -100,7 +100,7 @@ public class AimAssist extends Module {
         attackNeutral.showIf(() -> !aimAtCombatPartner.getValue());
         attackPassive.showIf(() -> !aimAtCombatPartner.getValue());
         attackEverything.showIf(() -> !aimAtCombatPartner.getValue());
-        laziness.showIf(() -> !aimInstant.getValue());
+        aimStrength.showIf(() -> !aimInstant.getValue());
         aimRandom.showIf(() -> !aimInstant.getValue());
         aimHeight.showIf(() -> aimMode.getValue() == AimMode.Custom);
 
@@ -197,15 +197,15 @@ public class AimAssist extends Module {
 
     void aimAtTarget() {
 
-        double modifiedLaziness = laziness.getValue() + 0;
+        double modifiedStrength = (100 - aimStrength.getValue())*2;
         if (aimRandom.getValue()) {
             double randomOffset = ThreadLocalRandom.current().nextDouble(aimRandomness.getValue().getMin(), aimRandomness.getValue().getMax());
-            modifiedLaziness = laziness.getValue() + (randomOffset * 2);
+            modifiedStrength = modifiedStrength + randomOffset;
         }
         
         if (!aimInstant.getValue()){
 
-            Rotations.lookAtPositionSmooth(le.getPos().add(0, (aimMode.getValue().getY(le, aimHeight.getValue())), 0), (float)(modifiedLaziness));
+            Rotations.lookAtPositionSmooth(le.getPos().add(0, (aimMode.getValue().getY(le, aimHeight.getValue())), 0), (float)(modifiedStrength));
 
         } else {
             Rotation py = Rotations.getPitchYaw(le.getPos().add(0, (aimMode.getValue().getY(le, aimHeight.getValue())), 0));
