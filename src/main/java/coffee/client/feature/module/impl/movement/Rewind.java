@@ -22,12 +22,12 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Backtrack extends Module {
+public class Rewind extends Module {
     final List<PositionEntry> entries = new ArrayList<>();
     boolean committed = false;
 
-    public Backtrack() {
-        super("Backtrack", "Allows you to redo your movement if you messed up", ModuleType.MOVEMENT);
+    public Rewind() {
+        super("Rewind", "Allows you to redo your movement if you messed up", ModuleType.MOVEMENT);
     }
 
     @MessageSubscription
@@ -37,7 +37,7 @@ public class Backtrack extends Module {
         }
     }
 
-    boolean shouldBacktrack() {
+    boolean shouldRewind() {
         return InputUtil.isKeyPressed(CoffeeMain.client.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_ALT) && CoffeeMain.client.currentScreen == null;
     }
 
@@ -62,7 +62,7 @@ public class Backtrack extends Module {
 
     @Override
     public void enable() {
-        Utils.Logging.message("To backtrack, use the left alt key");
+        Utils.Logging.message("To Rewind, use the left alt key");
         Utils.Logging.message("To do the movement, press enter");
         Utils.Logging.message("To cancel, disable the module");
     }
@@ -77,13 +77,13 @@ public class Backtrack extends Module {
     @Override
     public void onFastTick() {
 
-        if (shouldBacktrack() && !committed && !entries.isEmpty()) {
+        if (shouldRewind() && !committed && !entries.isEmpty()) {
             entries.remove(entries.size() - 1);
             moveTo(entries.get(entries.size() - 1));
         }
         shouldCommit();
 
-        if (!shouldBacktrack() && !committed) {
+        if (!shouldRewind() && !committed) {
             entries.add(new PositionEntry(
                 Utils.getInterpolatedEntityPosition(CoffeeMain.client.player),
                 CoffeeMain.client.player.getVelocity(),

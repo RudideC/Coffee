@@ -52,7 +52,7 @@ import coffee.client.feature.module.impl.misc.XCarry;
 import coffee.client.feature.module.impl.movement.AirJump;
 import coffee.client.feature.module.impl.movement.AntiAnvil;
 import coffee.client.feature.module.impl.movement.AutoElytra;
-import coffee.client.feature.module.impl.movement.Backtrack;
+import coffee.client.feature.module.impl.movement.Rewind;
 import coffee.client.feature.module.impl.movement.Blink;
 import coffee.client.feature.module.impl.movement.BlocksMCFlight;
 import coffee.client.feature.module.impl.movement.BoatPhase;
@@ -301,7 +301,7 @@ public class ModuleRegistry {
         registerModule(Trail.class);
         registerModule(AdBlock.class);
         registerModule(AutoLavacast.class);
-        registerModule(Backtrack.class);
+        registerModule(Rewind.class);
         registerModule(TabGui.class);
         registerModule(AntiCrash.class);
         registerModule(ClientSettings.class);
