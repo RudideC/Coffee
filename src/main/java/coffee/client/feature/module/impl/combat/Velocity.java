@@ -8,7 +8,6 @@ package coffee.client.feature.module.impl.combat;
 import coffee.client.CoffeeMain;
 import coffee.client.feature.config.DoubleSetting;
 import coffee.client.feature.config.EnumSetting;
-import coffee.client.feature.gui.notifications.Notification;
 import coffee.client.feature.module.Module;
 import coffee.client.feature.module.ModuleType;
 import coffee.client.helper.event.impl.PacketEvent;
@@ -31,13 +30,22 @@ public class Velocity extends Module {
         .max(2.5)
         .precision(1)
         .get());
+    final DoubleSetting jumpDelay = this.config.create(new DoubleSetting.Builder(0.2).name("Jump Delay")
+        .description("How much to delay the jump by (ticks)")
+        .min(1)
+        .max(2)
+        .precision(0)
+        .get());
     final EnumSetting<Mode> mode = this.config.create(new EnumSetting.Builder<>(Mode.Modify).name("Mode").description("How to modify velocity").get());
 
     public Velocity() {
         super("Velocity", "Modifies all incoming velocity updates", ModuleType.COMBAT);
         multiplierX.showIf(() -> mode.getValue() == Mode.Modify);
         multiplierY.showIf(() -> mode.getValue() == Mode.Modify);
+        jumpDelay.showIf(() -> mode.getValue() == Mode.JumpReset);
     }
+
+    boolean allowJump = false;
 
     @MessageSubscription
     void onA(PacketEvent.Received pe) {
@@ -63,7 +71,7 @@ public class Velocity extends Module {
                 }
             } else if (mode.getValue() == Mode.JumpReset) {
                 if (CoffeeMain.client.player.isOnGround() && !isFallDamage) {
-                    CoffeeMain.client.player.jump();
+                    allowJump = true;
                 }
             } else {
                 pe.setCancelled(true);
@@ -73,7 +81,14 @@ public class Velocity extends Module {
 
     @Override
     public void tick() {
-
+        if (allowJump && CoffeeMain.client.player.hurtTime == (int)(10 - jumpDelay.getValue())){
+            CoffeeMain.client.player.jump();
+            CoffeeMain.client.player.networkHandler.sendChatMessage("jump");
+            allowJump = false;
+        }
+        if (CoffeeMain.client.player.hurtTime == 0){
+            allowJump = false;
+        }
     }
     @Override
     public void enable() {
@@ -82,7 +97,7 @@ public class Velocity extends Module {
 
     @Override
     public void disable() {
-
+        allowJump = false;
     }
 
     @Override
