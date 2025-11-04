@@ -83,7 +83,6 @@ public class Velocity extends Module {
     public void tick() {
         if (allowJump && CoffeeMain.client.player.hurtTime == (int)(10 - jumpDelay.getValue())){
             CoffeeMain.client.player.jump();
-            CoffeeMain.client.player.networkHandler.sendChatMessage("jump");
             allowJump = false;
         }
         if (CoffeeMain.client.player.hurtTime == 0){
