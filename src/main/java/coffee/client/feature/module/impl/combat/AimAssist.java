@@ -17,6 +17,7 @@ import coffee.client.helper.manager.AttackManager;
 import coffee.client.helper.render.Renderer;
 import coffee.client.helper.util.Rotations;
 import coffee.client.helper.util.Utils;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
@@ -45,6 +46,9 @@ public class AimAssist extends Module {
         .get());
     final BooleanSetting attackPassive = this.config.create(new BooleanSetting.Builder(true).name("Attack passive")
         .description("Whether or nott o aim at passive entities")
+        .get());
+    final BooleanSetting attackInvisible = this.config.create(new BooleanSetting.Builder(false).name("Attack invisible")
+        .description("Whether or not to aim at everything else")
         .get());
     final BooleanSetting attackEverything = this.config.create(new BooleanSetting.Builder(true).name("Attack everything")
         .description("Whether or not to aim at everything else")
@@ -91,6 +95,15 @@ public class AimAssist extends Module {
         .upperMax(100)
         .precision(1)
         .get());
+    final DoubleSetting aimFov = this.config.create(new DoubleSetting.Builder(180).name("Aim Fov")
+        .description("Fov limit for targeting (360 = no limit)")
+        .min(10)
+        .max(360)
+        .precision(1)
+        .get());
+    final BooleanSetting aimFovY = this.config.create(new BooleanSetting.Builder(true).name("Aim Fov Y")
+        .description("Whether or not to apply Aim Fov on the Y axis")
+        .get());
     Entity le;
 
     public AimAssist() {
@@ -115,18 +128,12 @@ public class AimAssist extends Module {
             }
         } else {
             for (Entity entity : Objects.requireNonNull(CoffeeMain.client.world).getEntities()) {
-                if (!entity.isAttackable()) {
-                    continue;
-                }
-                if (entity.equals(CoffeeMain.client.player)) {
-                    continue;
-                }
-                if (!entity.isAlive()) {
-                    continue;
-                }
-                if (entity.getPos().distanceTo(CoffeeMain.client.player.getPos()) > range.getValue()) {
-                    continue;
-                }
+                if (entity.equals(CoffeeMain.client.player)) continue;
+                if (entity.getPos().distanceTo(CoffeeMain.client.player.getPos()) > range.getValue()) continue;
+                if (!entity.isAlive()) continue;
+                if (!entity.isAttackable()) continue;
+                if (entity.isInvisible() && !attackInvisible.getValue()) continue;
+                if (!isWithinFOV(entity)) continue;
                 boolean checked = false;
                 if (entity instanceof Angerable) {
                     checked = true;
@@ -193,6 +200,28 @@ public class AimAssist extends Module {
     @Override
     public String getContext() {
         return null;
+    }
+
+    private boolean isWithinFOV(Entity entity) {
+        if (aimFov.getValue() >= 360) return true;
+        ClientPlayerEntity pla = CoffeeMain.client.player;
+        if (pla == null) return false;
+        
+        Vec3d playerLook = pla.getRotationVec(1.0F);
+            
+        Vec3d playerPos = pla.getPos();
+        Vec3d entityPos = entity.getPos();
+        Vec3d toEntity = entityPos.subtract(playerPos);
+        if (!aimFovY.getValue()) {
+            toEntity = new Vec3d(toEntity.x, 0, toEntity.z);
+            playerLook = new Vec3d(playerLook.x, 0 , playerLook.z).normalize();
+        }
+        toEntity = toEntity.normalize();
+        
+        double dotProduct = playerLook.dotProduct(toEntity);
+        double angle = Math.toDegrees(Math.acos(dotProduct));
+        dotProduct = Math.max(-1.0, Math.min(1.0, dotProduct)); // Clamping to avoid possible issues
+        return angle <= (aimFov.getValue() / 2);
     }
 
     void aimAtTarget() {
