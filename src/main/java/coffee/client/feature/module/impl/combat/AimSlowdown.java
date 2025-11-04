@@ -34,7 +34,6 @@
     import java.util.Comparator;
     import java.util.List;
     import java.util.Objects;
-    import java.util.concurrent.ThreadLocalRandom;
 
     public class AimSlowdown extends Module {
 
@@ -185,9 +184,8 @@
         if (le != null && isLookingAtEntity(le)) {
             coffee.client.helper.AimModifyHelper.setEnabled(true);
             return;
-        } else if (le == null) {
-            coffee.client.helper.AimModifyHelper.setEnabled(false);
         }
+        coffee.client.helper.AimModifyHelper.setEnabled(false);
     }
 
     @Override
