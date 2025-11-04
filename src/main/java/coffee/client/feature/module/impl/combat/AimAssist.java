@@ -53,7 +53,7 @@ public class AimAssist extends Module {
     final BooleanSetting attackEverything = this.config.create(new BooleanSetting.Builder(true).name("Attack everything")
         .description("Whether or not to aim at everything else")
         .get());
-    final BooleanSetting aimAtCombatPartner = this.config.create(new BooleanSetting.Builder(true).name("Aim at combat")
+    final BooleanSetting aimAtCombatPartner = this.config.create(new BooleanSetting.Builder(false).name("Aim at combat")
         .description("Whether or not to only aim at the combat partner")
         .get());
     final EnumSetting<AimMode> aimMode = this.config.create(new EnumSetting.Builder<>(AimMode.Top).name("Aim Mode")
@@ -87,7 +87,7 @@ public class AimAssist extends Module {
         .description("Whether or not to randomize speed when aiming")
         .get());
     RangeSetting.Range defaultValue = new RangeSetting.Range(1, 100);
-    final RangeSetting aimRandomness = this.config.create(new RangeSetting.Builder(defaultValue).name("Randomness")
+    final RangeSetting randomness = this.config.create(new RangeSetting.Builder(defaultValue).name("Randomness")
         .description("How much random smoothing to add")
         .lowerMin(1)
         .lowerMax(100)
@@ -112,6 +112,7 @@ public class AimAssist extends Module {
         attackHostile.showIf(() -> !aimAtCombatPartner.getValue());
         attackNeutral.showIf(() -> !aimAtCombatPartner.getValue());
         attackPassive.showIf(() -> !aimAtCombatPartner.getValue());
+        attackInvisible.showIf(() -> !aimAtCombatPartner.getValue());
         attackEverything.showIf(() -> !aimAtCombatPartner.getValue());
         aimStrength.showIf(() -> !aimInstant.getValue());
         aimRandom.showIf(() -> !aimInstant.getValue());
@@ -228,7 +229,7 @@ public class AimAssist extends Module {
 
         double modifiedStrength = (100 - aimStrength.getValue())*2;
         if (aimRandom.getValue()) {
-            double randomOffset = ThreadLocalRandom.current().nextDouble(aimRandomness.getValue().getMin(), aimRandomness.getValue().getMax());
+            double randomOffset = ThreadLocalRandom.current().nextDouble(randomness.getValue().getMin(), randomness.getValue().getMax());
             modifiedStrength = modifiedStrength + randomOffset;
         }
         
