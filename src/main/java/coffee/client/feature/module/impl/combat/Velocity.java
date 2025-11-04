@@ -8,6 +8,7 @@ package coffee.client.feature.module.impl.combat;
 import coffee.client.CoffeeMain;
 import coffee.client.feature.config.DoubleSetting;
 import coffee.client.feature.config.EnumSetting;
+import coffee.client.feature.gui.notifications.Notification;
 import coffee.client.feature.module.Module;
 import coffee.client.feature.module.ModuleType;
 import coffee.client.helper.event.impl.PacketEvent;
@@ -40,21 +41,30 @@ public class Velocity extends Module {
 
     @MessageSubscription
     void onA(PacketEvent.Received pe) {
-        if (CoffeeMain.client.player == null) {
-            return;
-        }
+        if (CoffeeMain.client.player == null || CoffeeMain.client.world == null) return;
+
         if (pe.getPacket() instanceof EntityVelocityUpdateS2CPacket packet && packet.getId() == CoffeeMain.client.player.getId()) {
+            double velX = packet.getVelocityX() / 8000d; // don't ask me why they did this
+            double velY = packet.getVelocityY() / 8000d;
+            double velZ = packet.getVelocityZ() / 8000d;
+            boolean isFallDamage = velX == 0 && velZ == 0 && velY < 0;
+            
             if (mode.getValue() == Mode.Modify) {
-                double velX = packet.getVelocityX() / 8000d; // don't ask me why they did this
-                double velY = packet.getVelocityY() / 8000d;
-                double velZ = packet.getVelocityZ() / 8000d;
+                
                 velX *= multiplierX.getValue();
                 velY *= multiplierY.getValue();
                 velZ *= multiplierX.getValue();
-                IEntityVelocityUpdateS2CPacketMixin jesusFuckingChrist = (IEntityVelocityUpdateS2CPacketMixin) packet;
-                jesusFuckingChrist.setVelocityX((int) (velX * 8000));
-                jesusFuckingChrist.setVelocityY((int) (velY * 8000));
-                jesusFuckingChrist.setVelocityZ((int) (velZ * 8000));
+                IEntityVelocityUpdateS2CPacketMixin velocityUpdate = (IEntityVelocityUpdateS2CPacketMixin) packet;
+                
+                if (!isFallDamage) {
+                    velocityUpdate.setVelocityX((int) (velX * 8000));
+                    velocityUpdate.setVelocityY((int) (velY * 8000));
+                    velocityUpdate.setVelocityZ((int) (velZ * 8000));
+                }
+            } else if (mode.getValue() == Mode.JumpReset) {
+                if (CoffeeMain.client.player.isOnGround() && !isFallDamage) {
+                    CoffeeMain.client.player.jump();
+                }
             } else {
                 pe.setCancelled(true);
             }
@@ -65,7 +75,6 @@ public class Velocity extends Module {
     public void tick() {
 
     }
-
     @Override
     public void enable() {
 
@@ -92,6 +101,6 @@ public class Velocity extends Module {
     }
 
     public enum Mode {
-        Modify, Ignore
+        Modify, Ignore, JumpReset
     }
 }
