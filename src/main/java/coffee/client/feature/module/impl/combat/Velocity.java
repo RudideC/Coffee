@@ -30,7 +30,7 @@ public class Velocity extends Module {
         .max(2.5)
         .precision(1)
         .get());
-    final DoubleSetting jumpDelay = this.config.create(new DoubleSetting.Builder(0.2).name("Jump Delay")
+    final DoubleSetting jumpDelay = this.config.create(new DoubleSetting.Builder(1).name("Jump Delay")
         .description("How much to delay the jump by (ticks)")
         .min(1)
         .max(2)
