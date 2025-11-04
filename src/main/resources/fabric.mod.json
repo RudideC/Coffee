@@ -5,7 +5,8 @@
   "name": "Coffee client",
   "description": "Very based utility mod",
   "authors": [
-    "0x150"
+    "0x150",
+    "RudideC"
   ],
   "contributors": [
     "Authom",
@@ -13,7 +14,7 @@
   ],
   "contact": {
     "homepage": "https://client.coffee",
-    "sources": "https://github.com/Coffee-Client/Coffee"
+    "sources": "https://github.com/RudideC/Coffee"
   },
   "license": "All-Rights-Reserved",
   "icon": "assets/coffee/icon.png",
@@ -29,7 +30,8 @@
     "coffee.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.12.12",
-    "minecraft": ">=1.20"
+    "fabricloader": ">=0.16.4",
+    "minecraft": "~1.21.4",
+    "java": ">=21"
   }
 }
