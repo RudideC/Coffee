@@ -26,6 +26,7 @@ import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.Box;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -83,6 +84,15 @@ public class AimAssist extends Module {
     final BooleanSetting aimInstant = this.config.create(new BooleanSetting.Builder(false).name("Aim instantly")
         .description("Whether or not to aim instantly instead of smoothly")
         .get());
+    final BooleanSetting randomOffset = this.config.create(new BooleanSetting.Builder(true).name("Random Offset")
+        .description("Adds a small offset")
+        .get());
+    final DoubleSetting newOffsetTiming = this.config.create(new DoubleSetting.Builder(3).name("New offset timing")
+        .description("The time between new offset calculations (in seconds)")
+        .min(1)
+        .max(10)
+        .precision(0)
+        .get());
     final BooleanSetting aimRandom = this.config.create(new BooleanSetting.Builder(false).name("Aim random")
         .description("Whether or not to randomize speed when aiming")
         .get());
@@ -117,6 +127,7 @@ public class AimAssist extends Module {
         aimStrength.showIf(() -> !aimInstant.getValue());
         aimRandom.showIf(() -> !aimInstant.getValue());
         aimHeight.showIf(() -> aimMode.getValue() == AimMode.Custom);
+        newOffsetTiming.showIf(() -> randomOffset.getValue());
 
     }
 
@@ -226,7 +237,7 @@ public class AimAssist extends Module {
     }
 
     void aimAtTarget() {
-
+        if (le == null) return;
         double modifiedStrength = (100 - aimStrength.getValue())*2;
         if (aimRandom.getValue()) {
             double randomOffset = ThreadLocalRandom.current().nextDouble(randomness.getValue().getMin(), randomness.getValue().getMax());
@@ -235,13 +246,33 @@ public class AimAssist extends Module {
         
         if (!aimInstant.getValue()){
 
-            Rotations.lookAtPositionSmooth(le.getPos().add(0, (aimMode.getValue().getY(le, aimHeight.getValue())), 0), (float)(modifiedStrength));
+            Rotations.lookAtPositionSmooth(le.getPos().add(0, (aimMode.getValue().getY(le, aimHeight.getValue())), 0).add(offset(le)), (float)(modifiedStrength));
 
         } else {
             Rotation py = Rotations.getPitchYaw(le.getPos().add(0, (aimMode.getValue().getY(le, aimHeight.getValue())), 0));
             Objects.requireNonNull(CoffeeMain.client.player).setPitch(py.getPitch());
             CoffeeMain.client.player.setYaw(py.getYaw());
         }
+    }
+    private Entity lastTarget = null;
+    private long callsSinceLastChange = 0;
+    private Vec3d previousOffset = new Vec3d(0, 0, 0);
+    
+    public Vec3d offset(Entity e) {
+        if (!randomOffset.getValue()){
+            return new Vec3d(0, 0, 0);
+        }
+        if (lastTarget != e || callsSinceLastChange >= (newOffsetTiming.getValue() * 20)) {
+            lastTarget = e;
+            Box boundingBox = e.getBoundingBox();
+            double xVal = boundingBox.getXLength() / 2.1;  // X-axis 
+            double yVal = e.getHeight()/10d;               // Y-axis
+            double zVal = boundingBox.getZLength() / 2.1;  // Z-axis
+            previousOffset = new Vec3d(ThreadLocalRandom.current().nextDouble(-xVal, xVal), ThreadLocalRandom.current().nextDouble(-yVal, yVal), ThreadLocalRandom.current().nextDouble(-zVal, zVal));
+            callsSinceLastChange = 0;
+        }
+        callsSinceLastChange ++;
+        return previousOffset;
     }
 
     @Override
