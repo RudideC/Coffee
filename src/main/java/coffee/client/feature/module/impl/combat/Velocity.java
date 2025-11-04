@@ -30,9 +30,9 @@ public class Velocity extends Module {
         .max(2.5)
         .precision(1)
         .get());
-    final DoubleSetting jumpDelay = this.config.create(new DoubleSetting.Builder(1).name("Jump Delay")
+    final DoubleSetting jumpDelay = this.config.create(new DoubleSetting.Builder(0).name("Jump Delay")
         .description("How much to delay the jump by (ticks)")
-        .min(1)
+        .min(0)
         .max(2)
         .precision(0)
         .get());
@@ -81,7 +81,7 @@ public class Velocity extends Module {
 
     @Override
     public void tick() {
-        if (allowJump && CoffeeMain.client.player.hurtTime == (int)(10 - jumpDelay.getValue())){
+        if (allowJump && CoffeeMain.client.player.hurtTime == (int)(10 - jumpDelay.getValue()) && CoffeeMain.client.player.isOnGround()){
             CoffeeMain.client.player.jump();
             allowJump = false;
         }
