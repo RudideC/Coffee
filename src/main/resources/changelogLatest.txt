@@ -1,1 +1,5 @@
-Update to 1.20.1
+Aim Assist improvements:
+- Added fov setting
+- Added invis check
+Renamed backtrack to rewind
+Added Aim Slowdown module

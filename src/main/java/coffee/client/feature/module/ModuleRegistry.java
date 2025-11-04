@@ -9,6 +9,7 @@ package coffee.client.feature.module;
 import coffee.client.CoffeeMain;
 import coffee.client.feature.addon.Addon;
 import coffee.client.feature.module.impl.combat.AimAssist;
+import coffee.client.feature.module.impl.combat.AimSlowdown;
 import coffee.client.feature.module.impl.combat.AutoAttack;
 import coffee.client.feature.module.impl.combat.AutoTrap;
 import coffee.client.feature.module.impl.combat.BowAimbot;
@@ -335,6 +336,7 @@ public class ModuleRegistry {
         registerModule(KnockbackPlus.class);
         registerModule(Angryman.class);
         registerModule(UnfocusedCpu.class);
+        registerModule(AimSlowdown.class);
 
         rebuildSharedModuleList();
 
